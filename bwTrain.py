@@ -1,3 +1,12 @@
+#Authors:
+#Marianna Karenina - 10821144
+#Rodrigo Bragato - 10684573
+#Vinicius Ribeiro da Silva - 10828141
+
+#Description:
+#Load the black and White images e create a neural model
+
+
 from sklearn.model_selection import train_test_split
 from keras.layers import Input, Dense, MaxPooling1D, Flatten
 from keras.callbacks import ModelCheckpoint
@@ -10,6 +19,7 @@ import cv2
 import os
 
 
+#Load images as black white and change its lengh and width for 1/4 of the original size
 def load_images_from_folder(folder):
 	images = []
 	files = os.listdir(folder)
@@ -24,12 +34,40 @@ def load_images_from_folder(folder):
 			images.append(cv2.resize(img, dim, interpolation = cv2.INTER_AREA))
 	return images
 
+
+#Load images as a numpy array
 def readFolder(basePath):
 	Healthy = load_images_from_folder(basePath + '/Healthy')
 	Sick = load_images_from_folder(basePath + '/EarlyBlight')
 	Sick += load_images_from_folder(basePath + '/LateBlight')
 
 	return np.array(Healthy), np.array(Sick)
+
+def printClassDistribution(Y_train, Y_test, Y_val):
+	#Count the distribution
+	(unique_train, counts_train) = np.unique(Y_train, return_counts=True)
+	frequencies_train = np.asarray((unique_train, counts_train)).T
+	(unique_test, counts_test) = np.unique(Y_test, return_counts=True)
+	frequencies_test = np.asarray((unique_test, counts_test)).T
+	(unique_val, counts_val) = np.unique(Y_val, return_counts=True)
+	frequencies_val = np.asarray((unique_val, counts_val)).T
+ 
+	print("classes frequency at train data: ")
+	print("\t 0 -> Sick, 1 -> Healthy")
+	print("\t", frequencies_train[0][0], " -> ", frequencies_train[0][1], "(", frequencies_train[0][1] / (frequencies_train[0][1] + frequencies_train[1][1]), "%)")
+	print("\t", frequencies_train[1][0], " -> ", frequencies_train[1][1], "(", frequencies_train[1][1] / (frequencies_train[0][1] + frequencies_train[1][1]), "%)")
+	print("classes frequency at test data: ")
+	print("\t 0 -> Sick, 1 -> Healthy")
+	print("\t", frequencies_test[0][0], " -> ", frequencies_test[0][1], "(", frequencies_test[0][1] / (frequencies_test[0][1] + frequencies_test[1][1]), "%)")
+	print("\t", frequencies_test[1][0], " -> ", frequencies_test[1][1], "(", frequencies_test[1][1] / (frequencies_test[0][1] + frequencies_test[1][1]), "%)")
+	print("classes frequency at validation data: ")
+	print("\t 0 -> Sick, 1 -> Healthy")
+	print("\t", frequencies_val[0][0], " -> ", frequencies_val[0][1], "(", frequencies_val[0][1] / (frequencies_val[0][1] + frequencies_val[1][1]), "%)")
+	print("\t", frequencies_val[1][0], " -> ", frequencies_val[1][1], "(", frequencies_val[1][1] / (frequencies_val[0][1] + frequencies_val[1][1]), "%)")
+
+	# print("X_train.shape: ", X_train.shape)
+	# print("X_test.shape: ", X_test.shape)
+	# print("X_val.shape: ", X_val.shape)
 
 #Neural Network
 class HazeRemover(Model):
@@ -51,65 +89,36 @@ class HazeRemover(Model):
 		decoded = self.classifier(encoded)
 		return decoded
 
-
+#Loads the images
 basePath = './Imgs/BW'
 Healthy, Sick = readFolder(basePath)
 print("Healthy.shape: ", Healthy.shape)
 print("Sick.shape: ", Sick.shape)
 
-HealthyCount = Healthy.shape[0]
-SickCount = Sick.shape[0]
 
-Y_Healthy = np.ones((HealthyCount,), dtype=np.uint8)
-Y_Sick = np.zeros((SickCount,))
+#Create the output of the neural network(1 -> Healthy, 0 -> Sick)
+Y_Healthy = np.ones((Healthy.shape[0],), dtype=np.uint8)
+Y_Sick = np.zeros((Sick.shape[0],))
 
+#Join the inputs and outputs
 X = np.concatenate((Healthy, Sick))
 Y = np.concatenate((Y_Healthy, Y_Sick))
 
+#Flatten the image and change its range from 0-255 to 0-1
 imgPixelCount = X.shape[1] * X.shape[2]
 X = X.reshape(X.shape[0], imgPixelCount)
 X = np.expand_dims(X, axis=-1)
 X = X / 255
 
+#Split the train, test and validation values
+#80% Train, 10% Test and 10% validation
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=0.5, random_state=42)
-
-(unique_train, counts_train) = np.unique(Y_train, return_counts=True)
-frequencies_train = np.asarray((unique_train, counts_train)).T
-(unique_test, counts_test) = np.unique(Y_test, return_counts=True)
-frequencies_test = np.asarray((unique_test, counts_test)).T
-
-
-print("classes frequency at train data: ")
-print("\t 0 -> Sick, 1 -> Healthy")
-print("\t", frequencies_train[0][0], " -> ", frequencies_train[0][1], "(", frequencies_train[0][1] / (frequencies_train[0][1] + frequencies_train[1][1]), "%)")
-print("\t", frequencies_train[1][0], " -> ", frequencies_train[1][1], "(", frequencies_train[1][1] / (frequencies_train[0][1] + frequencies_train[1][1]), "%)")
-print("classes frequency at test data: ")
-print("\t 0 -> Sick, 1 -> Healthy")
-print("\t", frequencies_test[0][0], " -> ", frequencies_test[0][1], "(", frequencies_test[0][1] / (frequencies_test[0][1] + frequencies_test[1][1]), "%)")
-print("\t", frequencies_test[1][0], " -> ", frequencies_test[1][1], "(", frequencies_test[1][1] / (frequencies_test[0][1] + frequencies_test[1][1]), "%)")
-
-print("X_train.shape: ", X_train.shape)
-print("X_test.shape: ", X_test.shape)
-print("X_val.shape: ", X_val.shape)
-
-print("X_train.max(): ", X_train.max(), ", X_train.min(): ", X_train.min())
-print("X_test.max(): ", X_test.max(), ", X_test.min(): ", X_test.min())
-print("X_val.max(): ", X_val.max(), ", X_val.min(): ", X_val.min())
-
-print("X_train.dtype: ", X_train.dtype)
-print("Y_train.dtype: ", Y_train.dtype)
-
-# Y_train = to_categorical(Y_train, 1)
-# Y_test  = to_categorical(Y_test, 1)
-# Y_val  = to_categorical(Y_val, 1)
+X_test, X_val, Y_test, Y_val = train_test_split(X_test, Y_test, test_size=0.5, random_state=42)
+printClassDistribution(Y_train, Y_test, Y_val)
 
 Y_train = np.asarray(Y_train).astype('float32').reshape((-1,1))
 Y_test = np.asarray(Y_test).astype('float32').reshape((-1,1))
 Y_val = np.asarray(Y_val).astype('float32').reshape((-1,1))
-
-print("Y_train.shape: ", Y_train.shape)
-print("Y_test.shape: ", Y_test.shape)
 
 
 modelo = HazeRemover()
@@ -125,7 +134,7 @@ modelo.build((None, imgPixelCount))
 modelo.summary()
 
 
-#Trains the model
+# Trains the model
 modelo.fit(
   X_train,
   Y_train,
@@ -135,13 +144,9 @@ modelo.fit(
 )
 
 modelo.evaluate(X_test, Y_test)
-
-#Saves the network
 modelo.save("./Models/NetworkBW")
 
-
 pred = modelo.predict(X)
-
 T_P = 0
 T_N = 0
 F_P = 0

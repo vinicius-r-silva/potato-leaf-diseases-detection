@@ -1,8 +1,17 @@
+#Authors:
+#Marianna Karenina - 10821144
+#Rodrigo Bragato - 10684573
+#Vinicius Ribeiro da Silva - 10828141
+
+#Description:
+#Load the Dense and Knn models and show the evaluations of each one
+
 import tensorflow as tf
 import numpy as np
 import pickle
 import keras
 
+#Load the features
 def readFolder(basePath):
 	with open(basePath + '/Healthy.npy', 'rb') as f:
 		Healthy = np.load(f)
@@ -14,21 +23,23 @@ def readFolder(basePath):
 	return Healthy, Sick
 
 
+#Load features
 basePath = './Imgs/VGG16'
 Healthy, Sick = readFolder(basePath)
 
-HealthyCount = Healthy.shape[0]
-SickCount = Sick.shape[0]
+#Create the output of the neural network(1 -> Healthy, 0 -> Sick)
+Y_Healthy = np.ones((Healthy.shape[0],), dtype=np.uint8)
+Y_Sick = np.zeros((Sick.shape[0],))
 
-Y_Healthy = np.ones((HealthyCount,), dtype=np.uint8)
-Y_Sick = np.zeros((SickCount,))
-
+#Join the inputs and outputs
 X = np.concatenate((Healthy, Sick))
 Y = np.concatenate((Y_Healthy, Y_Sick))
 
-modelVGG = keras.models.load_model('./Models/Network')
+#Loads the dense model
+denseModel = keras.models.load_model('./Models/Network')
 
-pred = modelVGG.predict(X)
+#Evaluate the model over all saved features
+pred = denseModel.predict(X)
 
 T_P = 0
 T_N = 0
@@ -47,7 +58,7 @@ for i in range(len(pred)):
 		else:
 			F_N+=1
 
-modelVGG.evaluate(X, Y)
+denseModel.evaluate(X, Y)
 
 print("===========Rede===========")
 print("T_N: {:5d}      F_P: {:5d}".format(T_N, F_P))
@@ -58,11 +69,12 @@ print("Acc: {:.3f}                ".format((T_N+T_P)/(T_P+F_N+T_N+F_P)))
 print("==========================")
 
 
-# load the model from disk
+# load the Knn models
 KNN3 = pickle.load(open('./Models/KNN/knn3', 'rb'))
 KNN5 = pickle.load(open('./Models/KNN/knn5', 'rb'))
 KNN7 = pickle.load(open('./Models/KNN/knn7', 'rb'))
 
+#Evaluate the models over all saved features
 res = [KNN3.predict(X), KNN5.predict(X), KNN7.predict(X)]
 
 KnnTP = [0, 0, 0]

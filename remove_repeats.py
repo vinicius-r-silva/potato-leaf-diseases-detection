@@ -1,7 +1,16 @@
+#Authors:
+#Marianna Karenina - 10821144
+#Rodrigo Bragato - 10684573
+#Vinicius Ribeiro da Silva - 10828141
+
+#Description:
+#Remove duplicated images and save the result as RGB and Black and White images
+
 import cv2
 import os
 import numpy as np
 
+#Load images
 def load_images_from_folder(folder):
     images = []
     for filename in os.listdir(folder):
@@ -27,27 +36,32 @@ def saveToFolder(imgArray, path, baseName, BW):
 			cv2.imwrite(path+baseName+"_"+str(i)+'.jpg',img)
 		i+=1
 
+#Load the images
 basePath = './potato/imgs/colorful'
 ImgsH, ImgsEB, ImgsLB = readFolder(basePath)
 
+#Remove Healthy duplicated images
 ImgsH_Uniques = []
 for arr in ImgsH:
     if not any(np.array_equal(arr, unique_arr) for unique_arr in ImgsH_Uniques):
         ImgsH_Uniques.append(arr)
 print('Healthy_Uniques len: ' + str(len(ImgsH_Uniques)))
 
+#Remove Early Blight duplicated images
 ImgsEB_Uniques = []
 for arr in ImgsEB:
     if not any(np.array_equal(arr, unique_arr) for unique_arr in ImgsEB_Uniques):
         ImgsEB_Uniques.append(arr)
 print('Early_Blight_Uniques len: ' + str(len(ImgsEB_Uniques)))
 
+#Remove Late Blight duplicated images
 ImgsLB_Uniques = []
 for arr in ImgsLB:
     if not any(np.array_equal(arr, unique_arr) for unique_arr in ImgsLB_Uniques):
         ImgsLB_Uniques.append(arr)
 print('Late_Blight_Uniques len: ' + str(len(ImgsLB_Uniques)))
 
+#Save the images
 saveToFolder(ImgsH_Uniques, './Imgs/RGB/Healthy/', 'Healthy', False)
 saveToFolder(ImgsEB_Uniques, './Imgs/RGB/EarlyBlight/', 'EarlyB', False)
 saveToFolder(ImgsLB_Uniques, './Imgs/RGB/LateBlight/', 'LateB', False)
