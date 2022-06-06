@@ -137,4 +137,32 @@ modelo.fit(
 modelo.evaluate(X_test, Y_test)
 
 #Saves the network
-modelo.save("./network/models")
+modelo.save("./Models/NetworkBW")
+
+
+pred = modelo.predict(X)
+
+T_P = 0
+T_N = 0
+F_P = 0
+F_N = 0
+
+for i in range(len(pred)):
+	if(pred[i] > 0.5):
+		if(Y[i]==0):
+			F_P+=1
+		else:
+			T_P+=1
+	else:
+		if(Y[i]==0):
+			T_N+=1
+		else:
+			F_N+=1
+
+print("===========Rede===========")
+print("T_N: {:5d}      F_P: {:5d}".format(T_N, F_P))
+print("T_P: {:5d}      F_N: {:5d}".format(T_P, F_N))
+print("Pr0: {:.3f}      Pr1: {:.3f}".format((T_N/(T_N+F_N)),(T_P/(T_P+F_P))))
+print("Rv0: {:.3f}      Rv1: {:.3f}".format((T_N/(T_N+F_P)),(T_P/(T_P+F_N))))
+print("Acc: {:.3f}                ".format((T_N+T_P)/(T_P+F_N+T_N+F_P)))
+print("==========================")
