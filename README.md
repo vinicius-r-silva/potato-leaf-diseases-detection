@@ -1,8 +1,8 @@
 # potato-leaf-diseases-detection
 **SCC0276 - Aprendizado de Máquina
-Trabalho Final - Entrega 2
+Trabalho Final - Entrega 2**
 
-Alunos:**
+**Alunos:**
 Marianna Karenina de A. Flôres - 10821144
 Rodrigo Bragato Piva - 10684573
 Vinícius Ribeiro da Silva - 10828141
