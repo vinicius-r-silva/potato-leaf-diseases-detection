@@ -87,6 +87,7 @@ denseModel.compile(optimizer='adam',
 	loss = losses.BinaryCrossentropy(from_logits=True),
 	metrics = ['accuracy'])
 
+imgPixelCount = X.shape[1]
 denseModel.build((None, imgPixelCount))
 
 #Prints the summary of the network
